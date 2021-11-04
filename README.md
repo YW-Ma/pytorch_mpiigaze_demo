@@ -1,3 +1,14 @@
+# 1. How to use this model:
+```bash
+python setup.py install
+ptgaze --mode eth-xgaze
+```
+
+# 2. How to make change:
+edit code under folder .\ptgaze
+
+
+-------------- below is the original readme --------------
 # A demo program of gaze estimation models (MPIIGaze, MPIIFaceGaze, ETH-XGaze)
 
 [![PyPI version](https://badge.fury.io/py/ptgaze.svg)](https://pypi.org/project/ptgaze/)
