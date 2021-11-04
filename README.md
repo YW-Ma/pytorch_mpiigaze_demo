@@ -8,7 +8,8 @@ ptgaze --mode eth-xgaze
 edit code under folder .\ptgaze
 
 
--------------- below is the original readme --------------
+(below is the original readme)
+___
 # A demo program of gaze estimation models (MPIIGaze, MPIIFaceGaze, ETH-XGaze)
 
 [![PyPI version](https://badge.fury.io/py/ptgaze.svg)](https://pypi.org/project/ptgaze/)
