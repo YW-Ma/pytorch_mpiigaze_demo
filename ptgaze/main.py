@@ -11,9 +11,11 @@ from .utils import (check_path_all, download_dlib_pretrained_model,
                     download_ethxgaze_model, download_mpiifacegaze_model,
                     download_mpiigaze_model, expanduser_all,
                     generate_dummy_camera_params)
+from threading import Thread, Lock
+from time import sleep, ctime
 
 logger = logging.getLogger(__name__)
-
+lock = Lock() 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
@@ -122,6 +124,16 @@ def load_mode_config(args: argparse.Namespace) -> DictConfig:
 
 def main():
     args = parse_args()
+    t1 = Thread(target=work1, args=(args,))
+    t1.start()
+
+    t2 = Thread(target=work2, args=())
+    t2.start()
+
+
+def work1(args):
+    global demo
+    lock.acquire()
     if args.debug:
         logging.getLogger('ptgaze').setLevel(logging.DEBUG)
 
@@ -150,6 +162,18 @@ def main():
             download_ethxgaze_model()
 
     check_path_all(config)
-
     demo = Demo(config)
+    lock.release()
     demo.run()
+
+
+def work2():
+    sleep(1) # make sure work1 can get the lock
+    lock.acquire()
+    global demo
+    INTERVAL = 3 # change this interval
+    lock.release()
+    while True:
+        logger.info("Shared Variable: ")
+        logger.info(demo.gaze_estimator.results)
+        sleep(INTERVAL)

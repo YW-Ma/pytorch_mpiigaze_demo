@@ -32,6 +32,7 @@ class GazeEstimator:
             self._config.gaze_estimator.normalized_camera_distance)
         self._gaze_estimation_model = self._load_model()
         self._transform = create_transform(config)
+        self.results = [] # store the predicted vector.
 
     def _load_model(self) -> torch.nn.Module:
         model = create_model(self._config)
@@ -121,3 +122,6 @@ class GazeEstimator:
         face.normalized_gaze_angles = prediction[0]
         face.angle_to_vector()
         face.denormalize_gaze_vector()
+        if len(self.results) > 10:
+            self.results.pop(0)
+        self.results.append(face.gaze_vector) # this line is to add current predicted results into results.
