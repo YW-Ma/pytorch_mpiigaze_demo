@@ -11,7 +11,11 @@ from .utils import (check_path_all, download_dlib_pretrained_model,
                     download_ethxgaze_model, download_mpiifacegaze_model,
                     download_mpiigaze_model, expanduser_all,
                     generate_dummy_camera_params)
-from threading import Thread, Lock
+
+# from threading import Thread, Lock
+# from time import sleep, ctime
+
+from multiprocessing import Process, Lock, Pipe
 from time import sleep, ctime
 
 logger = logging.getLogger(__name__)
@@ -123,15 +127,27 @@ def load_mode_config(args: argparse.Namespace) -> DictConfig:
 
 
 def main():
+    parent_chn, child_chn = Pipe()
     args = parse_args()
-    t1 = Thread(target=work1, args=(args,))
+
+    t1 = Process(target=work1, args=(args, child_chn, ))
     t1.start()
 
-    t2 = Thread(target=work2, args=())
+    t2 = Process(target=work2, args=(parent_chn, ))
     t2.start()
 
+    t1.join()
+    t2.join()
 
-def work1(args):
+    # args = parse_args()
+    # t1 = Thread(target=work1, args=(args,))
+    # t1.start()
+    #
+    # t2 = Thread(target=work2, args=())
+    # t2.start()
+
+
+def work1(args, child_chn):
     global demo
     lock.acquire()
     if args.debug:
@@ -164,10 +180,10 @@ def work1(args):
     check_path_all(config)
     demo = Demo(config)
     lock.release()
-    demo.run()
+    demo.run(child_chn)
 
 
-def work2():
+def work2(parent_chn):
     sleep(1) # make sure work1 can get the lock
     lock.acquire()
     global demo
@@ -175,5 +191,7 @@ def work2():
     lock.release()
     while True:
         logger.info("Shared Variable: ")
-        logger.info(demo.gaze_estimator.results)
+        item = parent_chn.recv()
+        #logger.info(demo.gaze_estimator.results)
+        logger.info(item)
         sleep(INTERVAL)

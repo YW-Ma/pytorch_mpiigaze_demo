@@ -8,9 +8,9 @@ face_detector:
   mediapipe_max_num_faces: 3
 gaze_estimator:
   checkpoint: ~/.ptgaze/models/eth-xgaze_resnet18.pth
-  camera_params: ${PACKAGE_ROOT}/data/calib/sample_params.yaml
+  camera_params: /Users/yiyangcai/Desktop/workspaces/Cal/capstone/codes/pytorch_mpiigaze_demo/ptgaze/data/calib/sample_params.yaml
   use_dummy_camera_params: false
-  normalized_camera_params: ${PACKAGE_ROOT}/data/normalized_camera_params/eth-xgaze.yaml
+  normalized_camera_params: /Users/yiyangcai/Desktop/workspaces/Cal/capstone/codes/pytorch_mpiigaze_demo/ptgaze/data/normalized_camera_params/eth-xgaze.yaml
   normalized_camera_distance: 0.6
   image_size: [224, 224]
 demo:
@@ -24,7 +24,7 @@ demo:
   head_pose_axis_length: 0.05
   gaze_visualization_length: 0.05
   show_bbox: true
-  show_head_pose: false
+  show_head_pose: true
   show_landmarks: false
   show_normalized_image: false
   show_template_model: false

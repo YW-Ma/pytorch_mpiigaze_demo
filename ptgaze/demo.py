@@ -36,15 +36,18 @@ class Demo:
         self.show_normalized_image = self.config.demo.show_normalized_image
         self.show_template_model = self.config.demo.show_template_model
 
-    def run(self) -> None:
+    def run(self, channel):
         if self.config.demo.use_camera or self.config.demo.video_path:
-            self._run_on_video()
+            self._run_on_video(channel)
+            # channel.send(self.gaze_estimator.results)
         elif self.config.demo.image_path:
-            self._run_on_image()
+            self._run_on_image(channel)
+            #channel.send(self.gaze_estimator.results)
         else:
             raise ValueError
+        #return self.gaze_estimator.results
 
-    def _run_on_image(self):
+    def _run_on_image(self, channel):
         image = cv2.imread(self.config.demo.image_path)
         self._process_image(image)
         if self.config.demo.display_on_screen:
@@ -55,13 +58,17 @@ class Demo:
                 if key_pressed:
                     self._process_image(image)
                 cv2.imshow('image', self.visualizer.image)
+                # if cv2.waitKey(1) == 27:
+                #     break  # esc to quit
         if self.config.demo.output_dir:
             name = pathlib.Path(self.config.demo.image_path).name
             output_path = pathlib.Path(self.config.demo.output_dir) / name
             cv2.imwrite(output_path.as_posix(), self.visualizer.image)
 
-    def _run_on_video(self) -> None:
+    def _run_on_video(self, channel) -> None:
+        counter = 0
         while True:
+            counter += 1
             if self.config.demo.display_on_screen:
                 self._wait_key()
                 if self.stop:
@@ -74,6 +81,9 @@ class Demo:
 
             if self.config.demo.display_on_screen:
                 cv2.imshow('frame', self.visualizer.image)
+                # cv2.waitKey(1)
+            if counter % 10 == 0:
+                channel.send(self.gaze_estimator.results)
         self.cap.release()
         if self.writer:
             self.writer.release()
