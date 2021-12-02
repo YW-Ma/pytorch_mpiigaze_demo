@@ -7,6 +7,14 @@ ptgaze --mode eth-xgaze
 # 2. How to make change:
 edit code under folder .\ptgaze
 
+# 3. Environment:
+- can only work with python 3.7
+`conda create -n {your env name} python=3.7`
+- install an dependency called `dlib`. It should be installed by `conda install -c conda-forge dlib`
+- install CUDA version PyTorch `conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch` (cudatoolkit version can be different for different computer) to enable the `--device cuda` option.
+- Stuck at:
+  - something need a bunch of lower version dependencies, others need higher version ones.
+
 
 (below is the original readme)
 ___

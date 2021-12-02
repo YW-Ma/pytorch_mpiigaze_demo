@@ -2,6 +2,7 @@ import argparse
 import logging
 import pathlib
 import warnings
+import numpy as np
 
 import torch
 from omegaconf import DictConfig, OmegaConf
@@ -175,5 +176,19 @@ def work2():
     lock.release()
     while True:
         logger.info("Shared Variable: ")
-        logger.info(demo.gaze_estimator.results)
+        estimate_vector(demo.gaze_estimator.results)
         sleep(INTERVAL)
+
+
+def estimate_vector(arr):
+    mean = np.mean(arr, axis = 0)
+    std = np.std(arr, axis = 0)
+
+    filter = (abs(arr - mean) < std)
+    arr_filtered = []
+    for i in range(len(arr)):
+        if filter[i].all():
+            arr_filtered.append(arr[i])
+
+    estimated_vector = np.mean(arr_filtered, axis = 0)
+    logger.info(estimated_vector)
