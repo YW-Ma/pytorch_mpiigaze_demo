@@ -13,6 +13,7 @@ from .utils import (check_path_all, download_dlib_pretrained_model,
                     generate_dummy_camera_params)
 from threading import Thread, Lock
 from time import sleep, ctime
+import numpy as np
 
 logger = logging.getLogger(__name__)
 lock = Lock() 
@@ -166,14 +167,90 @@ def work1(args):
     lock.release()
     demo.run()
 
-
+import pyautogui
 def work2():
+    screenWidth, screenHeight = pyautogui.size() # Get the size of the primary monitor.
+    currentMouseX, currentMouseY = pyautogui.position()
     sleep(1) # make sure work1 can get the lock
     lock.acquire()
     global demo
-    INTERVAL = 3 # change this interval
+    CALIBRATION_INTERVAL = 3 # change this interval
+    CURSOR_INTERVAL = 1
     lock.release()
+
+    # first four results is used to calibration
+    x_right, x_left, y_up, y_down = 0, 0, 0, 0 
+    # min     max     min     max
+
+    iteration = 0
     while True:
-        logger.info("Shared Variable: ")
-        logger.info(demo.gaze_estimator.results)
-        sleep(INTERVAL)
+        x = 0
+        y = 0
+        for res in demo.gaze_estimator.results:
+            x += res[0]
+            y += res[1]
+        array = np.array(demo.gaze_estimator.results)
+        
+        # preprocesing: np.abs(data - np.mean(data, axis=0)) > np.std(data, axis=0) and only keep the all true ones
+        x /= -len(demo.gaze_estimator.results) # change sign (right should be larger than left)
+        y /= len(demo.gaze_estimator.results)
+        
+
+        # calibration
+        if iteration == 0:
+            logger.info("------------------- Look Upper-left -------------------")
+            sleep(CALIBRATION_INTERVAL)
+            iteration += 1
+            continue
+        if iteration == 1: # upper-left
+            x_left += x
+            y_up += y
+            logger.info("------------------- Then Look Upper-right -------------------")
+            sleep(CALIBRATION_INTERVAL)
+            iteration += 1
+            continue
+        elif iteration == 2: # upper-right
+            x_right += x
+            y_up += y
+            logger.info("------------------- Then Look lower-right -------------------")
+            sleep(CALIBRATION_INTERVAL)
+            iteration += 1
+            continue
+        elif iteration == 3: # lower-right
+            x_right += x
+            y_down += y
+            logger.info("------------------- Then Look lower-left -------------------")
+            sleep(CALIBRATION_INTERVAL)
+            iteration += 1
+            continue
+        elif iteration == 4: # lower-left
+            x_left += x
+            y_down += y
+            logger.info("-------------------------------------- Finished --------------------------------------")
+            sleep(CALIBRATION_INTERVAL)
+            iteration += 1
+            continue
+        elif iteration == 5:
+            x_right, x_left, y_up, y_down = x_right / 2, x_left / 2, y_up / 2, y_down / 2
+            logger.info("\nFinished calibration: \n x_right {}, \n x_left {}, \n y_up {}, \n y_down {}".format(x_right, x_left, y_up, y_down))
+
+
+        # after calibration, shrink the interval:
+        
+        # scale x and y
+        x = (x - x_left) / (x_right - x_left) * (screenWidth)
+        y = (y - y_up) / (y_down - y_up) * (screenHeight)
+        logger.info("\n x:{}   y: {}".format(x, y))
+        if x <= 0:
+            x = 1
+        if x >= screenWidth:
+            x = screenWidth - 1
+        if y <= 0:
+            y = 1
+        if y >= screenHeight:
+            y = screenHeight - 1
+
+        pyautogui.moveTo(x, y) # x, y  positive number
+
+        sleep(CURSOR_INTERVAL)
+        iteration += 1
