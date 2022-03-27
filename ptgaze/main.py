@@ -6,8 +6,8 @@ import warnings
 import torch
 from omegaconf import DictConfig, OmegaConf
 
-from .demo import Demo
-from .utils import (check_path_all, download_dlib_pretrained_model,
+from demo import Demo
+from utils import (check_path_all, download_dlib_pretrained_model,
                     download_ethxgaze_model, download_mpiifacegaze_model,
                     download_mpiigaze_model, expanduser_all,
                     generate_dummy_camera_params)
@@ -254,3 +254,12 @@ def work2():
 
         sleep(CURSOR_INTERVAL)
         iteration += 1
+
+
+
+args = parse_args()
+t1 = Thread(target=work1, args=(args,))
+t1.start()
+
+t2 = Thread(target=work2, args=())
+t2.start()
